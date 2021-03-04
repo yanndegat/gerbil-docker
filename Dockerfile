@@ -5,10 +5,18 @@ ARG GERBIL_VERSION=v0.16
 ARG LIBYAML_VERSION=0.2.4
 ARG OPENSSL_VERSION=1.1.1
 
-RUN yum groupinstall -y 'Development Tools'
-RUN yum install -y epel-release
-RUN yum update -y
-RUN yum install -y \
+ENV GAMBIT_HOME=/opt/gerbil
+ENV GERBIL_HOME=/opt/gerbil
+ENV GERBIL_PATH=/src/.gerbil
+ENV PATH=${GAMBIT_HOME}/bin:${GERBIL_HOME}/bin:/bin:/sbin:/usr/bin:/usr/sbin
+ENV GERBIL_BUILD_CORES=4
+
+RUN mkdir -p /src /opt
+
+RUN yum install -y epel-release \
+    && yum update -y \
+    && yum groupinstall -y 'Development Tools' \
+    && yum install -y \
     glibc-static \
     leveldb \
     leveldb-devel \
@@ -18,6 +26,9 @@ RUN yum install -y \
     mariadb-devel \
     sqlite-devel \
     zlib-static
+
+# install
+RUN git config --global url.https://github.com/.insteadOf git://github.com/
 
 # install libyaml
 RUN curl -k -L -o /tmp/yaml.tgz \
@@ -39,41 +50,33 @@ RUN curl -k -L -o /tmp/openssl.tgz \
     && ./config --prefix=/usr --openssldir=/etc/ssl --libdir=lib64 shared zlib-dynamic \
     && make && make install
 
-RUN git config --global url.https://github.com/.insteadOf git://github.com/
-RUN cd /root \
-    && git clone https://github.com/gambit/gambit \
-    && cd /root/gambit \
+# install gambit
+RUN cd /opt \
+    && git clone https://github.com/gambit/gambit gambit-src\
+    && cd gambit-src \
     && git fetch -a \
-    && git checkout ${GAMBIT_VERSION}
-
-ENV LDFLAGS  "-L/usr/lib64"
-RUN cd /root/gambit \
+    && git checkout ${GAMBIT_VERSION} \
     && ./configure \
-    --prefix=/usr/local/gambit \
+    --prefix=${GAMBIT_HOME} \
     --enable-single-host \
     --enable-openssl \
     --enable-default-runtime-options=f8,-8,t8 \
-    --enable-poll
+    --enable-poll\
+    && make -j4 \
+    && make install
 
-RUN cd /root/gambit && make -j4
-RUN cd /root/gambit && make install
-
-ENV PATH "/usr/local/gambit/bin:$PATH"
-
-RUN cd /root && git clone https://github.com/vyzo/gerbil && cd /root/gerbil && git checkout ${GERBIL_VERSION}
-
-RUN cd /root/gerbil/src && ls && ./configure --prefix=/usr/local/gerbil --enable-leveldb --enable-libxml --enable-libyaml --enable-lmdb
-
-ENV GERBIL_BUILD_CORES 4
-RUN cd /root/gerbil/src && ./build.sh
-RUN cd /root/gerbil/src && ./install
-
-ENV GERBIL_HOME "/root/gerbil"
-ENV PATH "/root/gerbil/bin:$PATH"
-
-ENV PATH=/usr/local/gambit/bin:/root/gerbil/bin:/bin:/sbin:/usr/bin:/usr/sbin
-ENV GERBIL_HOME=/root/gerbil
-ENV GERBIL_PATH=/src/.gerbil
+RUN cd /opt \
+    && git clone https://github.com/vyzo/gerbil gerbil-src \
+    && cd gerbil-src && git checkout ${GERBIL_VERSION} \
+    && cd src \
+    && ./configure \
+    --prefix=${GERBIL_HOME} \
+    --enable-leveldb \
+    --enable-libxml \
+    --enable-libyaml \
+    --enable-lmdb \
+     && ./build.sh \
+     && ./install
 
 RUN mkdir -p /src
 
