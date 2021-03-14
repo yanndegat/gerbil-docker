@@ -1,9 +1,7 @@
-FROM centos:centos7
+FROM alpine:latest
 
 ARG GAMBIT_VERSION=v4.9.3
 ARG GERBIL_VERSION=v0.16
-ARG LIBYAML_VERSION=0.2.4
-ARG OPENSSL_VERSION=1.1.1
 
 ENV GAMBIT_HOME=/opt/gerbil
 ENV GERBIL_HOME=/opt/gerbil
@@ -13,42 +11,31 @@ ENV GERBIL_BUILD_CORES=4
 
 RUN mkdir -p /src /opt
 
-RUN yum install -y epel-release \
-    && yum update -y \
-    && yum groupinstall -y 'Development Tools' \
-    && yum install -y \
-    glibc-static \
+RUN apk update && apk add \
+    autoconf \
+    automake \
+    curl \
+    gcc \
+    git \
     leveldb \
-    leveldb-devel \
-    libxml2-devel \
-    libyaml-devel \
-    lmdb-devel \
-    mariadb-devel \
-    sqlite-devel \
+    leveldb-dev \
+    libgcc \
+    libtool \
+    libxml2-dev \
+    linux-headers \
+    lmdb-dev \
+    make \
+    mariadb-dev \
+    musl \
+    musl-dev \
+    openssl-dev \
+    openssl-libs-static \
+    sqlite-dev \
+    yaml-dev \
+    yaml-static \
     zlib-static
 
-# install
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
-
-# install libyaml
-RUN curl -k -L -o /tmp/yaml.tgz \
-    https://github.com/yaml/libyaml/archive/${LIBYAML_VERSION}/libyaml-dist-${LIBYAML_VERSION}.tar.gz \
-    && cd /tmp \
-    && tar -xf yaml.tgz \
-    && cd libyaml-0* \
-    && ./bootstrap \
-    && ./configure --prefix=/usr \
-    && make -j4 \
-    && make install
-
-# install openssl
-RUN curl -k -L -o /tmp/openssl.tgz \
-    https://openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
-    && cd /tmp \
-    && tar -xf openssl.tgz \
-    && cd openssl-* \
-    && ./config --prefix=/usr --openssldir=/etc/ssl --libdir=lib64 shared zlib-dynamic \
-    && make && make install
 
 # install gambit
 RUN cd /opt \
@@ -65,6 +52,7 @@ RUN cd /opt \
     && make -j4 \
     && make install
 
+# install gerbil
 RUN cd /opt \
     && git clone https://github.com/vyzo/gerbil gerbil-src \
     && cd gerbil-src && git checkout ${GERBIL_VERSION} \
