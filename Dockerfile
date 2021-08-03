@@ -1,51 +1,13 @@
-ARG GAMBIT_VERSION=v4.9.3
 ARG GERBIL_VERSION=master
 
-FROM ubuntu:20.04
+FROM yanndegat/gambit:latest
 
-ENV GAMBIT_HOME /opt/gambit
 ENV GERBIL_HOME /opt/gerbil
 ENV GERBIL_PATH /src/.gerbil
-ENV PATH "${GAMBIT_HOME}/bin:${GERBIL_HOME}/bin:${PATH}"
+ENV PATH "${GERBIL_HOME}/bin:${PATH}"
 ENV GERBIL_BUILD_CORES 4
-ENV DEBIAN_FRONTEND non-interactive
 
-RUN mkdir -p /src /opt
-
-RUN apt update -y && apt install -y \
-    autoconf \
-    build-essential \
-    git \
-    libleveldb-dev \
-    libleveldb1d \
-    liblmdb-dev \
-    libmysqlclient-dev \
-    libsnappy1v5 \
-    libsqlite3-dev \
-    libssl-dev \
-    libxml2-dev \
-    libyaml-dev \
-    pkg-config \
-    rsync \
-    texinfo \
-    zlib1g-dev
-
-RUN git config --global url.https://github.com/.insteadOf git://github.com/
-
-# install gambit
-RUN cd /opt \
-    && git clone https://github.com/gambit/gambit gambit-src \
-    && cd gambit-src \
-    && git fetch -a \
-    && git checkout ${GAMBIT_VERSION} \
-    && ./configure \
-    --prefix=${GAMBIT_HOME} \
-    --enable-single-host \
-    --enable-openssl \
-    --enable-default-runtime-options=f8,-8,t8 \
-    --enable-poll \
-    && make -j4 \
-    && make install
+RUN mkdir -p /opt
 
 # install gerbil
 RUN cd /opt \
