@@ -1,39 +1,34 @@
 ARG GAMBIT_VERSION=v4.9.3
-ARG GERBIL_VERSION=v0.16
+ARG GERBIL_VERSION=master
 
-FROM alpine:latest
+FROM ubuntu:20.04
 
-ENV GAMBIT_HOME=/opt/gambit
-ENV GERBIL_HOME=/opt/gerbil
-ENV GERBIL_PATH=/src/.gerbil
-ENV PATH=${GAMBIT_HOME}/bin:${GERBIL_HOME}/bin:/usr/bin:/usr/sbin:/sbin:/bin
-ENV GERBIL_BUILD_CORES=4
+ENV GAMBIT_HOME /opt/gambit
+ENV GERBIL_HOME /opt/gerbil
+ENV GERBIL_PATH /src/.gerbil
+ENV PATH "${GAMBIT_HOME}/bin:${GERBIL_HOME}/bin:${PATH}"
+ENV GERBIL_BUILD_CORES 4
+ENV DEBIAN_FRONTEND non-interactive
 
 RUN mkdir -p /src /opt
 
-RUN apk update && apk add \
+RUN apt update -y && apt install -y \
     autoconf \
-    automake \
-    curl \
-    gcc \
+    build-essential \
     git \
-    leveldb \
-    leveldb-dev \
-    libgcc \
-    libtool \
+    libleveldb-dev \
+    libleveldb1d \
+    liblmdb-dev \
+    libmysqlclient-dev \
+    libsnappy1v5 \
+    libsqlite3-dev \
+    libssl-dev \
     libxml2-dev \
-    linux-headers \
-    lmdb-dev \
-    make \
-    mariadb-dev \
-    musl \
-    musl-dev \
-    openssl-dev \
-    openssl-libs-static \
-    sqlite-dev \
-    yaml-dev \
-    yaml-static \
-    zlib-static
+    libyaml-dev \
+    pkg-config \
+    rsync \
+    texinfo \
+    zlib1g-dev
 
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
 
