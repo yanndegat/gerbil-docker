@@ -1,3 +1,3 @@
-# Docker image for building gerbil linux static binaries
+# Alpine based docker image for building gerbil linux static binaries
 
-The dockerfile included in this repository is a wrap up of https://github.com/vyzo/gerbil dockerfiles
+The dockerfiles included in this repository are based on https://github.com/vyzo/gerbil dockerfiles

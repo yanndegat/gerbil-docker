@@ -1,27 +1,28 @@
-ARG GERBIL_VERSION=master
-
 FROM yanndegat/gambit:latest
 
-ENV GERBIL_HOME /opt/gerbil
+ARG GERBIL_VERSION=master
+
+ENV GERBIL_HOME /usr/local/gerbil
 ENV GERBIL_PATH /src/.gerbil
-ENV PATH "${GERBIL_HOME}/bin:${PATH}"
 ENV GERBIL_BUILD_CORES 4
 
-RUN mkdir -p /opt
+ENV PATH "${GERBIL_HOME}/bin:${PATH}"
+
+RUN git config --global url.https://github.com/.insteadOf git://github.com/
 
 # install gerbil
-RUN cd /opt \
-    && git clone https://github.com/vyzo/gerbil gerbil-src \
-    && cd gerbil-src && git checkout ${GERBIL_VERSION} \
-    && cd src \
+RUN cd /tmp \
+    && git clone --single-branch --branch ${GERBIL_VERSION} https://github.com/vyzo/gerbil \
+    && cd gerbil/src \
     && ./configure \
     --prefix=${GERBIL_HOME} \
     --enable-leveldb \
     --enable-libxml \
     --enable-libyaml \
     --enable-lmdb \
-     && ./build.sh \
-     && ./install
+    && ./build.sh \
+    && ./install \
+    && cd /tmp && rm -Rf gerbil
 
 RUN mkdir -p /src
 

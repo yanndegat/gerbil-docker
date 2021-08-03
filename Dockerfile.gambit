@@ -1,39 +1,39 @@
+FROM alpine:3.12
+
 ARG GAMBIT_VERSION=v4.9.3
 
-FROM ubuntu:20.04
-
-ENV GAMBIT_HOME /opt/gambit
+ENV GAMBIT_HOME /usr/local/gambit
 ENV PATH "${GAMBIT_HOME}/bin:${PATH}"
-ENV DEBIAN_FRONTEND non-interactive
 
-RUN mkdir -p /opt
-
-RUN apt update -y && apt install -y \
+RUN apk update && apk add \
     autoconf \
-    build-essential \
+    automake \
+    curl \
+    gcc \
     git \
-    libleveldb-dev \
-    libleveldb1d \
-    liblmdb-dev \
-    libmysqlclient-dev \
-    libsnappy1v5 \
-    libsqlite3-dev \
-    libssl-dev \
+    leveldb \
+    leveldb-dev \
+    libgcc \
+    libtool \
     libxml2-dev \
-    libyaml-dev \
-    pkg-config \
-    rsync \
-    texinfo \
-    zlib1g-dev
+    linux-headers \
+    lmdb-dev \
+    make \
+    mariadb-dev \
+    musl \
+    musl-dev \
+    openssl-dev \
+    openssl-libs-static \
+    sqlite-dev \
+    yaml-dev \
+    yaml-static \
+    zlib-static
 
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
 
-# install gambit
-RUN cd /opt \
-    && git clone https://github.com/gambit/gambit gambit-src \
-    && cd gambit-src \
-    && git fetch -a \
-    && git checkout ${GAMBIT_VERSION} \
+RUN cd /tmp \
+    && git clone --single-branch --branch ${GAMBIT_VERSION} https://github.com/gambit/gambit \
+    && cd /tmp/gambit \
     && ./configure \
     --prefix=${GAMBIT_HOME} \
     --enable-single-host \
@@ -41,7 +41,8 @@ RUN cd /opt \
     --enable-default-runtime-options=f8,-8,t8 \
     --enable-poll \
     && make -j4 \
-    && make install
+    && make install \
+    && rm -Rf /tmp/gambit
 
 RUN mkdir -p /src
 
